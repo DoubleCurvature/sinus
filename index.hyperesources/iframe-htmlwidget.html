@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    #container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    #input-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #input-container input[type="number"] {
+        font-size: 16px;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        min-width: 200px;
+    }
+
+    #input-container button {
+        font-size: 16px;
+        padding: 8px 12px;
+        background-color: #007bff;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    #input-container button:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    
+    .chart-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #y-result {
+        margin-top: 20px;
+    }
+       
+  </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Sinusoidal Curve</h1>
+        <div id="input-container">
+            <input type="number" id="x" placeholder="Enter Longitude" step="0.01" />
+            <button onclick="calculateY()">Calculate Latitude</button>
+        </div>   
+         <canvas id="chart" width="600" height="400"></canvas>
+           <div id="y-result"></div>    
+       </div>
+   
+  <!-- Include the Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include the JavaScript code -->
+    <script>
+        const A = .00000004; // Amplitude
+        const minX = 0;
+        const f = .106;
+        const maxX = 1.7 * Math.PI;
+        const numPoints = 1000;
+        const phi = 1.6; // Phase shift
+
+        function sinusoidalFunction(x) {
+            return A * Math.sin(2 * Math.PI * f * x + phi);
+        }
+
+        const chartPoints = Array.from({ length: numPoints }, (_, i) => {
+            const x = minX + (i / (numPoints - 1)) * (maxX - minX);
+            const y = sinusoidalFunction(x);
+            return { x, y };
+        });
+
+        function calculateY() {
+            const xInput = document.getElementById("x");
+            const x = parseFloat(xInput.value);
+            const y = sinusoidalFunction(x);
+            const yResult = document.getElementById("y-result");
+             const yFormatted = y.toFixed(3);            
+             yResult.textContent = `Latitude Coordinate: ${yFormatted}`;
+
+            // Update Y Coordinate dataset
+            chart.data.datasets[1].data = [{ x, y }];
+            chart.update();
+        }
+
+        // Create the chart
+        const ctx = document.getElementById("chart").getContext("2d");
+        const chart = new Chart(ctx, {
+            type: "line",
+            data: {
+                datasets: [
+                    {
+                        label: "Sinusoidal Curve",
+                        data: chartPoints,
+                        fill: false,
+                         borderColor: "rgba(0, 0, 0, .2)", // Black color with 100% opacity
+           				 backgroundColor: "rgba(0, 0, 255, .5)", // Set the background                        borderWidth: .5,
+                        pointRadius: .3, // Size of data points
+                        pointBackgroundColor: "rgba(0, 0, 0, .2)", // Black color with 100% opacity
+                        pointBorderColor: "rgba(0, 0, 0, .2)", // Black color with 100% opacity
+                        tension: 0.1,
+                    },
+                    {
+                        label: "Y Coordinate",
+                        data: [{x: 0, y: sinusoidalFunction(0)}],
+                        borderColor: "rgb(255, 99, 132,)",
+                        backgroundColor: "rgb(255, 99, 132,)",
+                        borderColor: "rgb(255, 99, 132,)",
+          				backgroundColor: "rgb(255, 99, 132,)",                        pointRadius: 8,
+                        pointBackgroundColor: "rgba(255, 0, 0, 1)", // Green color with 100% opacity
+   						pointBorderColor: "rgba(255, 0, 0, 1)", // Green color with 100% opacity                        
+   						pointHoverRadius: 9,
+                        fill: false,
+                                                        },
+                ],
+            },
+ options: {
+    scales: {
+        x: {
+            type: "linear",
+            min: minX,
+            max: maxX,
+        },
+        y: {
+            type: "linear",
+            min: -A * 3.5,
+            max: A * 3.5,
+        },
+    },
+
+    plugins: {
+        legend: {
+            position: 'top',
+            labels: {
+                color: 'black',
+                font: {
+                    size: 18,
+                },
+                boxWidth: 20,
+                boxHeight: 20,
+                padding: 10
+            },
+            generateLabels: function (chart) {
+                const defaultLabels = Chart.overrides.line.plugins.legend.labels.generateLabels(chart);
+
+                return defaultLabels.map(function (label, index) {
+                    // Set the strikethroughColor property based on the dataset index
+                    if (index === 0) {
+                        label.strikethroughColor = 'rgba(0, 0, 0, .2)'; // Sinusoidal Curve
+                    } else if (index === 1) {
+                        label.strikethroughColor = 'rgb(255, 99, 132)'; // Y Coordinate
+                    }
+
+                    return label;
+                });
+            },
+        },
+        chartArea: {
+            backgroundImage: `url('http://localhost:8080/desktop/')`
+       	 },
+    	},
+	},
+
+});
+    </script>
+</body>
+</html>
